@@ -1,65 +1,38 @@
+//
+//  ViewController.swift
+//  demoApp
+//
+//  Created by nandini on 2/21/18.
+//  Copyright © 2018 abc. All rights reserved.
+//
+
 import GoogleAPIClientForREST
-import GoogleSignIn
 import UIKit
 import youtube_ios_player_helper
+import GoogleSignIn
 
-class ViewController: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate,UISearchBarDelegate, UICollectionViewDataSource {
+class VideoListViewController: UIViewController,UISearchBarDelegate, UICollectionViewDataSource {
     
     private let reuseIdentifier = "Cell"
     
     @IBOutlet weak var searchCollectionView: UICollectionView!
     private var  searchList : [GTLRYouTube_SearchResult] = [];
     @IBOutlet weak var txtSearch: UISearchBar!
-    // If modifying these scopes, delete your previously saved credentials by
-    // resetting the iOS simulator or uninstall the app.
-    private let scopes = [kGTLRAuthScopeYouTubeReadonly]
     
+   
     private let service = GTLRYouTubeService()
-    let signInButton = GIDSignInButton()
-    let output = UITextView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Configure Google Sign-in.
-        GIDSignIn.sharedInstance().delegate = self
-        GIDSignIn.sharedInstance().uiDelegate = self
-        GIDSignIn.sharedInstance().scopes = scopes
-        GIDSignIn.sharedInstance().signInSilently()
-        
-        // Add the sign-in button.
-        view.addSubview(signInButton)
-        
-        // Add a UITextView to display output.
-        output.frame = view.bounds
-        output.isEditable = false
-        output.contentInset = UIEdgeInsets(top: 20, left: 0, bottom: 20, right: 0)
-        output.autoresizingMask = [.flexibleHeight, .flexibleWidth]
-        output.isHidden = true
-       // view.addSubview(output);
-        
-        // set search text deleagte
         txtSearch.delegate = self;
         
         // register the custom cell to the collection view
         self.searchCollectionView.register( UINib(nibName: "videoCollectionViewCell", bundle: Bundle.main), forCellWithReuseIdentifier: reuseIdentifier);
         self.searchCollectionView.dataSource = self
-        //self.searchCollectionView.delegate = self
-    }
-    
-    //MARK : google signin implementation
-    
-    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!,
-              withError error: Error!) {
-        if let error = error {
-            showAlert(title: "Authentication Error", message: error.localizedDescription)
-            self.service.authorizer = nil
-        } else {
-            self.signInButton.isHidden = true
-            self.output.isHidden = false
-            self.service.authorizer = user.authentication.fetcherAuthorizer()
-            fetchChannelResource()
-        }
+        self.service.authorizer =  GIDSignIn.sharedInstance().currentUser.authentication.fetcherAuthorizer()
+        fetchChannelResource()
+        self.navigationItem.hidesBackButton = true
     }
     
     
@@ -68,8 +41,7 @@ class ViewController: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate,U
         let query = GTLRYouTubeQuery_ChannelsList.query(withPart: "snippet,statistics")
         query.identifier = "UC_x5XG1OV2P6uZZ5FSM9Ttw"
         
-      
-    
+
         // To retrieve data for the current user's channel, comment out the previous
         // line (query.identifier ...) and uncomment the next line (query.mine ...)
         // query.mine = true
@@ -85,7 +57,7 @@ class ViewController: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate,U
         error : NSError?) {
         
         if let error = error {
-            showAlert(title: "Error", message: error.localizedDescription)
+            showAlert(title: "Error", message: error.localizedDescription, presenter: self)
             return
         }
         
@@ -99,26 +71,10 @@ class ViewController: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate,U
             outputText += "description: \(description!)\n"
             outputText += "view count: \(viewCount!)\n"
         }
-        output.text = outputText
+       
     }
     
 
-    
-    // Helper for showing an alert
-    func showAlert(title : String, message: String) {
-        let alert = UIAlertController(
-            title: title,
-            message: message,
-            preferredStyle: UIAlertControllerStyle.alert
-        )
-        let ok = UIAlertAction(
-            title: "OK",
-            style: UIAlertActionStyle.default,
-            handler: nil
-        )
-        alert.addAction(ok)
-        present(alert, animated: true, completion: nil)
-    }
     
     //MARK : Search implementation
     
@@ -148,7 +104,7 @@ class ViewController: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate,U
         finishedWithObject response : GTLRYouTube_SearchListResponse,
         error : NSError?) {
         if let error = error {
-            showAlert(title: "Error", message: error.localizedDescription)
+            showAlert(title: "Error", message: error.localizedDescription , presenter: self)
             return
         }
         

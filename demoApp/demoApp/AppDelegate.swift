@@ -2,7 +2,7 @@
 //  AppDelegate.swift
 //  demoApp
 //
-//  Created by avinash on 10/10/17.
+//  Created by nandini on 10/10/17.
 //  Copyright © 2017 abc. All rights reserved.
 //
 import Google
@@ -17,11 +17,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // configure google service
-        var configureError: NSError?
+         var configureError: NSError?
         GGLContext.sharedInstance().configureWithError(&configureError)
         assert(configureError == nil, "Error configuring Google services: \(String(describing: configureError))")
-
+        if let _ = GIDSignIn.sharedInstance().currentUser
+        {
+            let sb = UIStoryboard.init(name: "Main", bundle: nil)
+            self.window?.rootViewController = sb.instantiateViewController(withIdentifier: SBIdentifiers.searchVideoSBIdentifier)
+            
+        }
         return true
+        
     }
    
     func applicationWillResignActive(_ application: UIApplication) {
